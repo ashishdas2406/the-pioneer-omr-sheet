@@ -1,33 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
-
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>THE PIONEERS,ROURKELA OMR Sheet</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>OMR Sheet Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <style>
+     form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f8f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    p {
+      color: #555;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    #totalMarks {
+      font-weight: bold;
+      font-size: 24px;
+      color: #ff6347;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input[type="number"] {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: calc(100% - 1150px);
+      margin-bottom: 15px;
+      outline: none;
+      font-size: 16px;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+    }
+    button {
+        margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      outline: none;
+      width: 10%;
+      font-size: 14px;
+      display: inline-block;
+      margin-bottom: 10px;
+      
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .questions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      justify-content: center;
+    }
+
+    .questions div {
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      margin-bottom: 20px;
+      width: calc(50% - 30px);
+      transition: transform 0.3s ease;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .questions div:hover {
+      transform: translateY(-5px);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    /* Responsive styles */
+    @media screen and (max-width: 600px) {
+      .questions div {
+        width: calc(100% - 20px);
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="omr-sheet">
-    <h1>THE PIONEERS,ROURKELA</h1>
-    <h1>OMR Sheet</h1>
-    <form id="omrForm">
-      <div id="questionsContainer">
-        <!-- Questions will be generated here -->
-      </div>
-      
-      <input type="submit" value="Download OMR Sheet">
-      
-    </form>
-  </div>
-  <footer>
-    <p>&copy; 2023 THE PIONEERS,ROURKELA. (Version 1.0.0)     All rights reserved.</p>
-  </footer>
+  <h1>OMR Sheet Generator</h1>
+  <p>Questions Attempted: <span id="attemptedCount">0</span></p>
+  <p>Number of Correct Answers: <input type="number" id="correctCount" min="0"></p>
+  
+  <form id="omrForm">
+    <button type="button" onclick="calculateMarks()">Calculate Marks</button>
+  <p>Total Marks: <span id="totalMarks">0</span></p>
+    <div class="questions" id="questionsPart1"></div>
+    <div class="questions" id="questionsPart2"></div>
+<br>
+    <button type="button" onclick="downloadOMR()">Download OMR</button>
+  </form>
 
-  <script src="script.js"></script>
+  <script>
+    // Function to generate questions for each part
+    function generateQuestions(part, container) {
+      let questionsHTML = '';
+
+      for (let i = 1; i <= 100; i++) {
+        const questionNumber = i + (part - 1) * 100;
+        questionsHTML += `
+          <div>
+            <strong>Question ${questionNumber}:</strong>
+            <label> A <input type="radio" name="q${questionNumber}" value="a"> </label>
+            <label> B <input type="radio" name="q${questionNumber}" value="b">  </label>
+            <label> C <input type="radio" name="q${questionNumber}" value="c">  </label>
+            <label> D <input type="radio" name="q${questionNumber}" value="d">  </label>
+          </div>
+        `;
+      }
+
+      container.innerHTML = questionsHTML;
+      addChangeListener(); // Attach change listener after generating questions
+    }
+ // Function to attach change listener to radio buttons
+ function addChangeListener() {
+      const radioInputs = document.querySelectorAll('input[type="radio"]');
+      radioInputs.forEach(input => {
+        input.addEventListener('change', updateAttemptedCount);
+      });
+    }
+
+    // Function to update attempted questions count
+    function updateAttemptedCount() {
+      const radioInputs = document.querySelectorAll('input[type="radio"]');
+      let attemptedCount = 0;
+
+      radioInputs.forEach(input => {
+        if (input.checked) {
+          attemptedCount++;
+        }
+      });
+
+      document.getElementById('attemptedCount').textContent = attemptedCount;
+    }
+    
+    // Function to download OMR
+    function downloadOMR() {
+      const form = document.getElementById('omrForm');
+      const formData = new FormData(form);
+      const totalQuestions = 200;
+      let selectedOptions = '';
+
+      for (let i = 1; i <= totalQuestions; i++) {
+        const selectedValue = formData.get(`q${i}`);
+        const options = ['A', 'B', 'C', 'D'];
+
+        selectedOptions += `Question ${i}: `;
+        if (selectedValue) {
+          selectedOptions += `${selectedValue.toUpperCase()}\n`;
+          
+        } else {
+          selectedOptions += 'No Option Selected\n';
+        }
+
+        
+      }
+
+      selectedOptions += `\nQuestions Attempted: ${document.getElementById('attemptedCount').textContent}`;
+
+      const blob = new Blob([selectedOptions], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'OMR_Selection.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Generate questions for both parts on page load
+    window.onload = function () {
+      generateQuestions(1, document.getElementById('questionsPart1'));
+      generateQuestions(2, document.getElementById('questionsPart2'));
+    };
+
+
+    function calculateMarks() {
+      const correctCount = parseInt(document.getElementById('correctCount').value) || 0;
+      const attemptedCount = parseInt(document.getElementById('attemptedCount').textContent) || 0;
+      const incorrectCount = attemptedCount - correctCount;
+
+      const totalMarks = correctCount - (incorrectCount / 3);
+      document.getElementById('totalMarks').textContent = totalMarks.toFixed(2);
+    }
+  
+  </script>
 </body>
 </html>
-
-
-
